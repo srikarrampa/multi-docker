@@ -1,0 +1,21 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t srikarrampally/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true srikarrampally/react-test npm test
+
+after_success:
+  - docker build -t srikarrampally/multi-client ./client
+  - docker build -t srikarrampally/multi-nginx ./nginx
+  - docker build -t srikarrampally/multi-server ./server
+  - docker build -t srikarrampally/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push srikarrampally/multi-client
+  - docker push srikarrampally/multi-nginx
+  - docker push srikarrampally/multi-server
+  - docker push srikarrampally/multi-worker
